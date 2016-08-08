@@ -175,19 +175,25 @@
 	import fade from 'ractive-transitions-fade';
 	import sample from './sample.svg';
 
-	const input = window.localStorage && 'input' in localStorage ?
-		localStorage.getItem( 'input' ) :
-		sample;
+	function getInitialInput () {
+		try {
+			const base64 = /data=([a-zA-Z0-9=\-+]+)/.exec( window.location.search )[1];
+			return atob( base64 );
+		} catch ( err ) {
+			return sample;
+		}
+	}
 
-	const output = pathologist.transform( input );
-
-	let updateHashTimeout;
-	function updateHash ( input ) {
-		clearTimeout( updateHashTimeout );
-		updateHashTimeout = setTimeout( () => {
-			window.location.hash = btoa( input );
+	let updateUrlTimeout;
+	function updateUrl ( input ) {
+		clearTimeout( updateUrlTimeout );
+		updateUrlTimeout = setTimeout( () => {
+			history.replaceState( {}, 'x', `/?data=${btoa( input )}` );
 		}, 400 );
 	}
+
+	const input = getInitialInput();
+	const output = pathologist.transform( input );
 
 	component.exports = {
 		data: () => ({
@@ -209,7 +215,7 @@
 				clearTimeout( timeout );
 
 				localStorage.setItem( 'input', input );
-				updateHash( input );
+				updateUrl( input );
 
 				try {
 					this.set({
