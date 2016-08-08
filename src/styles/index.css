@@ -1,0 +1,19 @@
+@import './layout.css';
+@import './codemirror.css';
+@import './typography.css';
+
+/* guide */
+@import './sidebar.css';
+@import './content.css';
+
+@keyframes pulse {
+	0%   { opacity: 1; }
+	50%  { opacity: 0; }
+	100% { opacity: 1; }
+}
+
+@-webkit-keyframes pulse {
+	0%   { opacity: 1; }
+	50%  { opacity: 0; }
+	100% { opacity: 1; }
+}

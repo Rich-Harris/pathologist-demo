@@ -1,0 +1,254 @@
+<link rel='ractive' href='./CodeMirror.html'>
+
+<div class='demo'>
+	<div class='input'>
+		{{#if showLabels}}
+			<h2 on-mouseover='set("showLabels",false)' outro='fade:fast'>input</h2>
+		{{/if}}
+
+		<div class='preview' style='height: calc({{100*y}}% - 4px);'>
+			{{{input}}}
+		</div>
+
+		<div class='code' style='height: {{100*(1-y)}}%;'>
+			<CodeMirror value='{{input}}' error='{{error}}'>
+		</div>
+	</div>
+
+	{{#if error}}
+		<!-- <div class='error-container'> -->
+			<div class='error' intro='slide:fast'>
+				{{error.message}}
+			</div>
+		<!-- </div> -->
+	{{/if}}
+
+	<div class='output'>
+		{{#if showLabels}}
+			<h2 on-mouseover='set("showLabels",false)' outro='fade:fast'>output</h2>
+		{{/if}}
+
+		<div class='preview' style='height: calc({{100*y}}% - 4px);'>
+			{{{output}}}
+		</div>
+
+		<div class='code' style='height: {{100*(1-y)}}%;'>
+			<CodeMirror value='{{output}}' readonly>
+		</div>
+	</div>
+
+	<div class='height-control' style='top: {{y * 100}}%;' on-mousedown='startDragging()'></div>
+</div>
+
+
+<style>
+	.demo {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+
+	.input, .output, .preview, .code {
+		position: relative;
+		box-sizing: border-box;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+
+	.preview {
+		/*padding: 10px;*/
+		border: 6px solid rgba(0,0,0,0.05);
+		overflow: hidden;
+	}
+
+	svg {
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+	}
+
+	.error {
+		position: fixed;
+		width: 100%;
+		bottom: 0;
+		padding: 0.5em;
+		background-color: rgb(255,220,220);
+		border-top: 1px solid rgb(200,0,0);
+		color: rgb(200,0,0);
+		z-index: 999;
+	}
+
+	.error-loc {
+		position: relative;
+	}
+
+	.error-loc::before {
+		position: absolute;
+		content: '^';
+		display: inline-block;
+		bottom: -0.6em;
+		left: -0.2em;
+		/*background-color: rgb(200,0,0);
+		color: white;*/
+		background-color: white;
+		color: rgb(200,0,0);
+		font-size: 1em;
+		font-weight: 500;
+		/*width: 1em;
+		height: 1em;*/
+		/*padding: 0.1em;
+		text-align: center;*/
+		border-radius: 50%;
+		-webkit-animation: pulse 1s infinite;
+		animation: pulse 1s infinite;
+	}
+
+	.output .CodeMirror {
+		background-color: #f4f4f4;
+	}
+
+	.output .CodeMirror-lines {
+		cursor: default !important;
+	}
+
+	h2 {
+		position: absolute;
+		top: 1rem;
+		right: 2rem;
+		z-index: 2;
+		font-family: 'Source Sans Pro';
+		font-size: 1rem;
+		text-transform: lowercase;
+		margin: 0;
+		font-weight: 400;
+		-webkit-transition: opacity 0.2s;
+		transition: opacity 0.2s;
+		border-radius: 2rem;
+		padding: 0.5rem 1rem;
+		background-color: #333;
+		color: white;
+		opacity: 0.8;
+		z-index: 999;
+		/*pointer-events: none;*/
+	}
+
+	.height-control {
+		position: absolute;
+		width: 100%;
+		height: 8px;
+		background-color: white;
+		margin: -4px 0;
+		border-top: 1px solid #ccc;
+		border-bottom: 1px solid #ccc;
+		z-index: 999;
+		cursor: ns-resize;
+	}
+
+	@media (min-width: 768px) {
+		.input, .output {
+			width: 50%;
+			height: 100%;
+			float: left;
+		}
+
+		.input {
+			border-right: 1px solid #ccc;
+		}
+
+		.preview, .code {
+			width: 100%;
+		}
+
+		.error {
+			bottom: 2em;
+		}
+	}
+</style>
+
+
+<script>
+	import slide from 'ractive-transitions-slide';
+	import fade from 'ractive-transitions-fade';
+	import sample from './sample.svg';
+
+	const input = window.localStorage && 'input' in localStorage ?
+		localStorage.getItem( 'input' ) :
+		sample;
+
+	const output = pathologist.transform( input );
+
+	let updateHashTimeout;
+	function updateHash ( input ) {
+		clearTimeout( updateHashTimeout );
+		updateHashTimeout = setTimeout( () => {
+			window.location.hash = btoa( input );
+		}, 400 );
+	}
+
+	component.exports = {
+		data: () => ({
+			error: null,
+			showLabels: true,
+
+			input, output,
+
+			y: 0.5
+		}),
+
+		onrender () {
+			window.demo = this;
+
+			let lastError;
+			let timeout;
+
+			this.observe( 'input', input => {
+				clearTimeout( timeout );
+
+				localStorage.setItem( 'input', input );
+				updateHash( input );
+
+				try {
+					this.set({
+						output: pathologist.transform( input ),
+						error: null
+					});
+				} catch ( err ) {
+					timeout = setTimeout( () => {
+						this.set( 'error', err );
+					}, 400 );
+				}
+			});
+
+			setTimeout( () => {
+				this.set( 'showLabels', false );
+			}, 8 * 1000 );
+
+			this.container = this.find( '.demo' );
+			this.editors = this.findAllComponents( 'CodeMirror' );
+		},
+
+		startDragging () {
+			const startY = this.event.original.clientY;
+
+			const onmousemove = event => {
+				event.clientY;
+				const { top, bottom } = this.container.getBoundingClientRect();
+				const y = ( event.clientY - top ) / ( bottom - top );
+				this.set( 'y', y );
+				this.editors.forEach( editor => editor.refresh() );
+			};
+
+			const cancel = () => {
+				window.removeEventListener( 'mousemove', onmousemove, false );
+				window.removeEventListener( 'mouseup', cancel, false );
+				window.removeEventListener( 'mouseleave', cancel, false );
+			};
+
+			window.addEventListener( 'mousemove', onmousemove, false );
+			window.addEventListener( 'mouseup', cancel, false );
+			window.addEventListener( 'mouseleave', cancel, false );
+		},
+
+		transitions: { fade, slide }
+	};
+</script>

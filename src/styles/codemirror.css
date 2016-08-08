@@ -1,0 +1,38 @@
+.CodeMirror {
+	font-family: 'Inconsolata';
+}
+
+.CodeMirror {
+	height: auto;
+}
+
+.input .CodeMirror-scroll, .output .CodeMirror-scroll {
+	/*padding: 0.5em;*/
+	box-sizing: border-box;
+	overflow-x: hidden !important;
+	margin-bottom: 0;
+	min-height: 5em;
+	/*max-height: 80vh;*/
+}
+
+.CodeMirror span {
+	color: #333;
+}
+
+.CodeMirror-foldmarker {    
+	font-family: arial;
+}
+.CodeMirror-foldgutter {
+	width: .7em;
+}
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded {
+	color: #555;
+	cursor: pointer;
+}
+.CodeMirror-foldgutter-open:after {
+	content: "\25BE";
+}
+.CodeMirror-foldgutter-folded:after {
+	content: "\25B8";
+}

@@ -1,0 +1,59 @@
+<textarea></textarea>
+
+<script>
+	component.exports = {
+		data: () => ({
+			error: null
+		}),
+
+		onrender () {
+			let cm = CodeMirror.fromTextArea( this.find( 'textarea' ), {
+				lineNumbers: true,
+				lineWrapping: true,
+				mode: 'xml',
+				foldGutter: true,
+				gutters: [ 'CodeMirror-linenumbers', 'CodeMirror-foldgutter' ],
+				readOnly: this.get( 'readonly' )
+			});
+
+			cm.setSize( null, '100%' );
+
+			let updating = false;
+
+			this.observe( 'value', value => {
+				if ( updating || typeof value !== 'string' ) return;
+
+				updating = true;
+				cm.setValue( value );
+				updating = false;
+			});
+
+			cm.on( 'change', instance => {
+				if ( updating ) return;
+
+				updating = true;
+				this.set( 'value', instance.getValue() );
+				updating = false;
+			});
+
+			let marker;
+			this.observe( 'error', error => {
+				if ( marker ) marker.clear();
+
+				if ( error && error.loc ) {
+					const { line, column } = error.loc;
+					marker = cm.markText({ line: line - 1, ch: column }, { line: line - 1, ch: column + 1 }, {
+						className: 'error-loc'
+					});
+				}
+			});
+
+			setTimeout( () => cm.refresh() );
+			this.cm = cm;
+		},
+
+		refresh () {
+			this.cm.refresh();
+		}
+	};
+</script>
