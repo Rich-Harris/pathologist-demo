@@ -1,10 +1,12 @@
 @import './layout.css';
 @import './codemirror.css';
 @import './typography.css';
+@import './misc-responsive.css';
 
 /* guide */
-@import './sidebar.css';
-@import './content.css';
+/*@import './sidebar.css';
+@import './content.css';*/
+
 
 @keyframes pulse {
 	0%   { opacity: 1; }

@@ -1,0 +1,9 @@
+.gt-560 {
+	display: none;
+}
+
+@media (min-width: 560px) {
+	.gt-560 {
+		display: inline-block;
+	}
+}
