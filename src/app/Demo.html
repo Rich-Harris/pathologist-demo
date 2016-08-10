@@ -178,7 +178,9 @@
 	function getInitialInput () {
 		try {
 			const base64 = /data=([a-zA-Z0-9=\-+]+)/.exec( window.location.search )[1];
-			return atob( base64 );
+			const svg = atob( base64 );
+
+			return svg;
 		} catch ( err ) {
 			return sample;
 		}
@@ -192,15 +194,13 @@
 		}, 400 );
 	}
 
-	const input = getInitialInput();
-	const output = pathologist.transform( input );
-
 	component.exports = {
 		data: () => ({
 			error: null,
 			showLabels: true,
 
-			input, output,
+			input: '',
+			output: '',
 
 			y: 0.5
 		}),
@@ -211,6 +211,8 @@
 			let lastError;
 			let timeout;
 
+			this.set( 'input', getInitialInput() );
+
 			this.observe( 'input', input => {
 				clearTimeout( timeout );
 
@@ -218,11 +220,14 @@
 				updateUrl( input );
 
 				try {
+					const output = pathologist.transform( input );
+
 					this.set({
-						output: pathologist.transform( input ),
+						output,
 						error: null
 					});
 				} catch ( err ) {
+					console.error( err );
 					timeout = setTimeout( () => {
 						this.set( 'error', err );
 					}, 400 );
